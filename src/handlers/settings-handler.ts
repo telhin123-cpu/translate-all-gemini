@@ -44,6 +44,10 @@ export class TranslateAllSettingHandler {
       config: true,
       type: String,
       default: "https://generativelanguage.googleapis.com",
+      choices: {
+        "https://generativelanguage.googleapis.com": "Google Gemini (generativelanguage.googleapis.com)",
+        "https://api.deepseek.com": "DeepSeek (api.deepseek.com)",
+      },
     },
     targetLanguage: {
       name: "translate-all-gemini.settings.language.name",
@@ -78,6 +82,35 @@ export class TranslateAllSettingHandler {
 
   async init(): Promise<void> {
     await this._registerSettings();
+    this._registerRefreshButton();
+  }
+
+  private _registerRefreshButton(): void {
+    Hooks.on("renderSettingsConfig", (_app: SettingsConfig, html: JQuery<HTMLElement>) => {
+      const modelRow = html.find(`[name="translate-all-gemini.targetModel"]`).closest(".form-group");
+      if (!modelRow.length) return;
+
+      const btn = $(`<button type="button" style="margin-top:4px;width:100%;">
+        <i class="fas fa-sync-alt"></i> Refresh Models
+      </button>`);
+
+      btn.on("click", async () => {
+        btn.prop("disabled", true).find("i").addClass("fa-spin");
+        const provider = TranslateAllSettingHandler.getSetting("translate-all-gemini", "aiProvider") as SupportedAIProviders;
+        const models = await Translator.getModels(provider);
+        if (models) {
+          const select = html.find(`[name="translate-all-gemini.targetModel"]`);
+          const current = select.val();
+          select.empty();
+          for (const [id, label] of Object.entries(models)) {
+            select.append(`<option value="${id}" ${id === current ? "selected" : ""}>${label}</option>`);
+          }
+        }
+        btn.prop("disabled", false).find("i").removeClass("fa-spin");
+      });
+
+      modelRow.append(btn);
+    });
   }
 
   private async _registerSettings(): Promise<void> {
