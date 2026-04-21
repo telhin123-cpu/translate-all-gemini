@@ -41,22 +41,80 @@ export class Translator {
   }
 
   /**
-   * Gemini does not have a public REST endpoint to list models,
-   * so we return a static map with the available models per provider.
+   * Fetch available models dynamically from the provider API.
+   * Falls back to a static list if the request fails.
    */
   static async getModels(provider?: SupportedAIProviders): Promise<Record<string, string> | undefined> {
     if (provider === SupportedAIProviders.DEEPSEEK) {
-      return {
-        "deepseek-chat": "DeepSeek Chat (V3)",
-        "deepseek-reasoner": "DeepSeek Reasoner (R1)",
-      };
+      return await Translator.getDeepSeekModels();
     }
-    return {
-      "gemini-2.0-flash": "Gemini 2.0 Flash",
-      "gemini-2.0-flash-lite": "Gemini 2.0 Flash Lite",
-      "gemini-1.5-flash-latest": "Gemini 1.5 Flash",
-      "gemini-1.5-pro-latest": "Gemini 1.5 Pro",
+    return await Translator.getGeminiModels();
+  }
+
+  static async getGeminiModels(): Promise<Record<string, string>> {
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
+
+    // Pricing per 1M tokens (input / output), as of 2025
+    const pricing: Record<string, string> = {
+      "gemini-2.0-flash":        "Gemini 2.0 Flash — $0.10 / $0.40 per 1M tokens",
+      "gemini-2.0-flash-lite":   "Gemini 2.0 Flash Lite — $0.075 / $0.30 per 1M tokens",
+      "gemini-1.5-flash-latest": "Gemini 1.5 Flash — $0.075 / $0.30 per 1M tokens",
+      "gemini-1.5-pro-latest":   "Gemini 1.5 Pro — $1.25 / $5.00 per 1M tokens",
+      "gemini-2.5-pro-preview-05-06": "Gemini 2.5 Pro Preview — $1.25 / $10.00 per 1M tokens",
     };
+
+    if (apiKey && apiEndpoint) {
+      try {
+        const res = await fetch(`${apiEndpoint}/v1beta/models?key=${apiKey}`);
+        if (res.ok) {
+          const data = await res.json();
+          const result: Record<string, string> = {};
+          for (const m of data?.models ?? []) {
+            // Only include models that support generateContent
+            if (!m.supportedGenerationMethods?.includes("generateContent")) continue;
+            const id = m.name?.replace("models/", "") ?? "";
+            result[id] = pricing[id] ?? m.displayName ?? id;
+          }
+          if (Object.keys(result).length > 0) return result;
+        }
+      } catch {
+        // fall through to static list
+      }
+    }
+
+    return pricing;
+  }
+
+  static async getDeepSeekModels(): Promise<Record<string, string>> {
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
+
+    // Pricing per 1M tokens (input cache hit / input / output), as of 2025
+    const pricing: Record<string, string> = {
+      "deepseek-chat":     "DeepSeek Chat V3 — $0.07 / $0.27 / $1.10 per 1M tokens",
+      "deepseek-reasoner": "DeepSeek Reasoner R1 — $0.14 / $0.55 / $2.19 per 1M tokens",
+    };
+
+    if (apiKey && apiEndpoint) {
+      try {
+        const res = await fetch(`${apiEndpoint}/v1/models`, {
+          headers: { "Authorization": `Bearer ${apiKey}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const result: Record<string, string> = {};
+          for (const m of data?.data ?? []) {
+            result[m.id] = pricing[m.id] ?? m.id;
+          }
+          if (Object.keys(result).length > 0) return result;
+        }
+      } catch {
+        // fall through to static list
+      }
+    }
+
+    return pricing;
   }
 
   static async translateWithGemini(description: string): Promise<string | undefined> {
