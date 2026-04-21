@@ -7,6 +7,7 @@ export interface TranslateConfigSettingConfig {
   'translate-all-gemini.targetModel': string;
   'translate-all-gemini.apiEndpoint': string;
   'translate-all-gemini.promptTemplatePath': string;
+  'translate-all-gemini.aiProvider': string;
 }
 
 export type TranslateAllNamespace = typeof MODULE_NAME | ClientSettings.Namespace;
@@ -27,6 +28,11 @@ export interface TranslateFunction {
     description: string,
     path: string,
   ): Promise<void>;
+}
+
+export enum SupportedAIProviders {
+  GEMINI = 'gemini',
+  DEEPSEEK = 'deepseek',
 }
 
 export enum SupportedSystems {

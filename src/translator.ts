@@ -1,8 +1,12 @@
 import { TranslateAllSettingHandler } from "handlers/settings-handler";
-import { SupportedLanguages, SupportedSystems } from "types";
+import { SupportedAIProviders, SupportedLanguages, SupportedSystems } from "types";
 
 export class Translator {
   static async translate(description: string): Promise<string | undefined> {
+    const provider = TranslateAllSettingHandler.getSetting("translate-all-gemini", "aiProvider") as SupportedAIProviders;
+    if (provider === SupportedAIProviders.DEEPSEEK) {
+      return await Translator.translateWithDeepSeek(description);
+    }
     return await Translator.translateWithGemini(description);
   }
 
@@ -38,9 +42,15 @@ export class Translator {
 
   /**
    * Gemini does not have a public REST endpoint to list models,
-   * so we return a static map with the available Gemini models.
+   * so we return a static map with the available models per provider.
    */
-  static async getModels(): Promise<Record<string, string> | undefined> {
+  static async getModels(provider?: SupportedAIProviders): Promise<Record<string, string> | undefined> {
+    if (provider === SupportedAIProviders.DEEPSEEK) {
+      return {
+        "deepseek-chat": "DeepSeek Chat (V3)",
+        "deepseek-reasoner": "DeepSeek Reasoner (R1)",
+      };
+    }
     return {
       "gemini-2.0-flash": "Gemini 2.0 Flash",
       "gemini-2.0-flash-lite": "Gemini 2.0 Flash Lite",
@@ -83,5 +93,45 @@ export class Translator {
     const data = await response.json();
     // Response shape: { candidates: [{ content: { parts: [{ text: "..." }] } }] }
     return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? undefined;
+  }
+
+  static async translateWithDeepSeek(description: string): Promise<string | undefined> {
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
+    const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
+    const model = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetModel") as string;
+    const prompt = await Translator.generatePrompt(system, language, description);
+
+    // DeepSeek uses OpenAI-compatible API
+    const url = `${apiEndpoint}/v1/chat/completions`;
+
+    let response: Response | undefined;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+    } catch (error) {
+      ui?.notifications?.error(`DeepSeek API call failed. ${error}`);
+      return undefined;
+    }
+
+    if (!response?.ok) {
+      const errText = await response?.text().catch(() => "");
+      ui?.notifications?.error(`DeepSeek API call failed: ${response?.status} ${errText}`);
+      return undefined;
+    }
+
+    const data = await response.json();
+    // OpenAI-compatible response shape
+    return data?.choices?.[0]?.message?.content ?? undefined;
   }
 }

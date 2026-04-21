@@ -1,5 +1,5 @@
 import { Translator } from "../translator";
-import { KeyFor, SupportedSystems, TranslateAllNamespace } from "../types";
+import { KeyFor, SupportedAIProviders, SupportedSystems, TranslateAllNamespace } from "../types";
 
 export class TranslateAllSettingHandler {
   gameSettings: Game["settings"] = game.settings!;
@@ -10,10 +10,22 @@ export class TranslateAllSettingHandler {
       scope: "world",
       config: true,
       type: String,
-      default: SupportedSystems.PATHFINDER2E, // Default to Pathfinder 2e
+      default: SupportedSystems.PATHFINDER2E,
       choices: {
         [SupportedSystems.DND5E]: "D&D 5e",
         [SupportedSystems.PATHFINDER2E]: "Pathfinder 2e",
+      },
+    },
+    aiProvider: {
+      name: "translate-all-gemini.settings.aiProvider.name",
+      hint: "translate-all-gemini.settings.aiProvider.hint",
+      scope: "world",
+      config: true,
+      type: String,
+      default: SupportedAIProviders.GEMINI,
+      choices: {
+        [SupportedAIProviders.GEMINI]: "Google Gemini",
+        [SupportedAIProviders.DEEPSEEK]: "DeepSeek",
       },
     },
     apiKey: {
@@ -76,6 +88,11 @@ export class TranslateAllSettingHandler {
     );
     this._register(
       "translate-all-gemini" as TranslateAllNamespace,
+      "aiProvider" as KeyFor<TranslateAllNamespace>,
+      this.settings.aiProvider,
+    );
+    this._register(
+      "translate-all-gemini" as TranslateAllNamespace,
       "apiKey" as KeyFor<TranslateAllNamespace>,
       this.settings.apiKey,
     );
@@ -89,7 +106,8 @@ export class TranslateAllSettingHandler {
       "targetLanguage" as KeyFor<TranslateAllNamespace>,
       this.settings.targetLanguage,
     );
-    const models = await Translator.getModels();
+    const provider = (this.gameSettings.get("translate-all-gemini" as "core", "aiProvider" as KeyFor<"core">) ?? SupportedAIProviders.GEMINI) as SupportedAIProviders;
+    const models = await Translator.getModels(provider);
     if (models) {
       this.settings.targetModel.choices = models;
     }
