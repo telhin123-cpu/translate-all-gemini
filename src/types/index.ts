@@ -34,6 +34,7 @@ export enum SupportedAIProviders {
   GEMINI = 'gemini',
   DEEPSEEK = 'deepseek',
   GIGACHAT = 'gigachat',
+  OPENROUTER = 'openrouter',
 }
 
 export enum SupportedSystems {

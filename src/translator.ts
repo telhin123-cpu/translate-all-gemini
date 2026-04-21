@@ -10,8 +10,10 @@ export class Translator {
     if (provider === SupportedAIProviders.GIGACHAT) {
       return await Translator.translateWithGigaChat(description);
     }
-    return await Translator.translateWithGemini(description);
-  }
+    if (provider === SupportedAIProviders.OPENROUTER) {
+      return await Translator.translateWithOpenRouter(description);
+    }
+    return await Translator.translateWithGemini(description);  }
 
   static async getPromptTemplate(path: string, description: string): Promise<string> {
     const promptTemplatePath = TranslateAllSettingHandler.getSetting("translate-all-gemini", "promptTemplatePath") as string;
@@ -53,6 +55,9 @@ export class Translator {
     }
     if (provider === SupportedAIProviders.GIGACHAT) {
       return await Translator.getGigaChatModels();
+    }
+    if (provider === SupportedAIProviders.OPENROUTER) {
+      return await Translator.getOpenRouterModels();
     }
     return await Translator.getGeminiModels();
   }
@@ -212,6 +217,80 @@ export class Translator {
         else reject(new Error("No response from server socket"));
       });
     });
+  }
+
+  static async getOpenRouterModels(): Promise<Record<string, string>> {
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+
+    // Static fallback — Gemini models available on OpenRouter
+    const fallback: Record<string, string> = {
+      "google/gemini-2.0-flash-001":      "Gemini 2.0 Flash — $0.10 / $0.40 per 1M tokens",
+      "google/gemini-2.0-flash-lite-001": "Gemini 2.0 Flash Lite — $0.075 / $0.30 per 1M tokens",
+      "google/gemini-1.5-flash":          "Gemini 1.5 Flash — $0.075 / $0.30 per 1M tokens",
+      "google/gemini-1.5-pro":            "Gemini 1.5 Pro — $1.25 / $5.00 per 1M tokens",
+      "google/gemini-2.5-pro-preview":    "Gemini 2.5 Pro Preview — $1.25 / $10.00 per 1M tokens",
+    };
+
+    if (!apiKey) return fallback;
+
+    try {
+      // OpenRouter supports CORS for /api/v1/models — try direct fetch first
+      const res = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: { "Authorization": `Bearer ${apiKey}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const result: Record<string, string> = {};
+        for (const m of data?.data ?? []) {
+          // Only Gemini models
+          if (!m.id?.startsWith("google/")) continue;
+          const pricing = m.pricing
+            ? `$${parseFloat(m.pricing.prompt) * 1_000_000} / $${parseFloat(m.pricing.completion) * 1_000_000} per 1M tokens`
+            : "";
+          result[m.id] = pricing ? `${m.name} — ${pricing}` : m.name;
+        }
+        if (Object.keys(result).length > 0) return result;
+      }
+    } catch {
+      // fall through to static list
+    }
+
+    return fallback;
+  }
+
+  static async translateWithOpenRouter(description: string): Promise<string | undefined> {
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
+    const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
+    const model = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetModel") as string;
+    const prompt = await Translator.generatePrompt(system, language, description);
+
+    // Use serverFetch to bypass CORS on chat completions endpoint
+    try {
+      const res = await Translator.serverFetch(`${apiEndpoint}/api/v1/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": window.location.origin,
+          "X-Title": "FoundryVTT Translate All",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (!res.ok) {
+        ui?.notifications?.error(`OpenRouter API call failed: ${res.status} ${res.body}`);
+        return undefined;
+      }
+      const data = JSON.parse(res.body);
+      return data?.choices?.[0]?.message?.content ?? undefined;
+    } catch (err) {
+      ui?.notifications?.error(`OpenRouter API call failed. ${err}`);
+      return undefined;
+    }
   }
 
   static async getGigaChatModels(): Promise<Record<string, string>> {

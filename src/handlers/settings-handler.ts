@@ -27,6 +27,7 @@ export class TranslateAllSettingHandler {
         [SupportedAIProviders.GEMINI]: "Google Gemini",
         [SupportedAIProviders.DEEPSEEK]: "DeepSeek",
         [SupportedAIProviders.GIGACHAT]: "GigaChat (Sber)",
+        [SupportedAIProviders.OPENROUTER]: "OpenRouter (Gemini via proxy)",
       },
     },
     apiKey: {
@@ -49,6 +50,7 @@ export class TranslateAllSettingHandler {
         "https://generativelanguage.googleapis.com": "Google Gemini (generativelanguage.googleapis.com)",
         "https://api.deepseek.com": "DeepSeek (api.deepseek.com)",
         "https://gigachat.devices.sberbank.ru": "GigaChat (gigachat.devices.sberbank.ru)",
+        "https://openrouter.ai": "OpenRouter (openrouter.ai)",
       },
     },
     targetLanguage: {
