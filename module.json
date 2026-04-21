@@ -2,7 +2,7 @@
   "id": "translate-all-gemini",
   "title": "Translate All (Gemini)",
   "description": "Adds a button to translate item/spell and Journal descriptions using Google Gemini.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "compatibility": {
     "minimum": "13",
@@ -18,7 +18,7 @@
   "url": "https://github.com/telhin123-cpu/translate-all-gemini",
   "readme": "https://github.com/telhin123-cpu/translate-all-gemini/blob/master/README.md",
   "manifest": "https://raw.githubusercontent.com/telhin123-cpu/translate-all-gemini/refs/heads/main/module.json",
-  "download": "https://github.com/telhin123-cpu/translate-all-gemini/releases/download/1.0.2/module.zip",
+  "download": "https://github.com/telhin123-cpu/translate-all-gemini/releases/download/1.0.3/module.zip",
   "changelog": "https://github.com/telhin123-cpu/translate-all-gemini/blob/master/CHANGELOG.md",
   "bugs": "https://github.com/telhin123-cpu/translate-all-gemini/issues",
   "esmodules": [
