@@ -1,6 +1,6 @@
 {
   "name": "translate-all-gemini",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Foundry VTT module to translate item and spell descriptions using Google Gemini.",
   "private": true,
   "type": "module",
