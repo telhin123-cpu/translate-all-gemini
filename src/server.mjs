@@ -9,6 +9,8 @@
 
 const MODULE_ID = "translate-all-gemini";
 
+console.log("[translate-all-gemini] server.mjs loaded");
+
 Hooks.once("ready", () => {
   game.socket.on(`module.${MODULE_ID}`, async (data) => {
     if (data?.action !== "proxyFetch") return;
