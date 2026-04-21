@@ -33,6 +33,7 @@ export interface TranslateFunction {
 export enum SupportedAIProviders {
   GEMINI = 'gemini',
   DEEPSEEK = 'deepseek',
+  GIGACHAT = 'gigachat',
 }
 
 export enum SupportedSystems {

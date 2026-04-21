@@ -7,6 +7,9 @@ export class Translator {
     if (provider === SupportedAIProviders.DEEPSEEK) {
       return await Translator.translateWithDeepSeek(description);
     }
+    if (provider === SupportedAIProviders.GIGACHAT) {
+      return await Translator.translateWithGigaChat(description);
+    }
     return await Translator.translateWithGemini(description);
   }
 
@@ -47,6 +50,9 @@ export class Translator {
   static async getModels(provider?: SupportedAIProviders): Promise<Record<string, string> | undefined> {
     if (provider === SupportedAIProviders.DEEPSEEK) {
       return await Translator.getDeepSeekModels();
+    }
+    if (provider === SupportedAIProviders.GIGACHAT) {
+      return await Translator.getGigaChatModels();
     }
     return await Translator.getGeminiModels();
   }
@@ -191,5 +197,92 @@ export class Translator {
     const data = await response.json();
     // OpenAI-compatible response shape
     return data?.choices?.[0]?.message?.content ?? undefined;
+  }
+
+  /**
+   * Proxy a fetch request through the Foundry server socket to bypass CORS.
+   */
+  private static async serverFetch(url: string, options: { method: string; headers: Record<string, string>; body?: string }): Promise<{ ok: boolean; status: number; body: string }> {
+    return new Promise((resolve, reject) => {
+      (game as any).socket.emit(`module.translate-all-gemini`, {
+        action: "proxyFetch",
+        payload: { url, ...options },
+      }, (res: any) => {
+        if (res) resolve(res);
+        else reject(new Error("No response from server socket"));
+      });
+    });
+  }
+
+  static async getGigaChatModels(): Promise<Record<string, string>> {
+    // Pricing per 1000 tokens (input / output), as of 2025
+    return {
+      "GigaChat":       "GigaChat — ₽0.20 / ₽0.20 per 1K tokens",
+      "GigaChat-Plus":  "GigaChat Plus — ₽1.00 / ₽1.00 per 1K tokens",
+      "GigaChat-Pro":   "GigaChat Pro — ₽2.00 / ₽2.00 per 1K tokens",
+      "GigaChat-Max":   "GigaChat Max — ₽8.00 / ₽8.00 per 1K tokens",
+    };
+  }
+
+  static async translateWithGigaChat(description: string): Promise<string | undefined> {
+    const credentials = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
+    const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
+    const model = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetModel") as string;
+    const prompt = await Translator.generatePrompt(system, language, description);
+
+    // Step 1: get OAuth2 token via server proxy (bypasses CORS)
+    let accessToken: string;
+    try {
+      const authRes = await Translator.serverFetch(
+        "https://ngw.devices.sberbank.ru:9443/api/v2/oauth",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "RqUID": crypto.randomUUID(),
+            "Authorization": `Basic ${credentials}`,
+          },
+          body: "scope=GIGACHAT_API_PERS",
+        },
+      );
+      if (!authRes.ok) {
+        ui?.notifications?.error(`GigaChat auth failed: ${authRes.status} ${authRes.body}`);
+        return undefined;
+      }
+      accessToken = JSON.parse(authRes.body).access_token;
+    } catch (err) {
+      ui?.notifications?.error(`GigaChat auth failed. ${err}`);
+      return undefined;
+    }
+
+    // Step 2: call chat completions via server proxy
+    try {
+      const res = await Translator.serverFetch(
+        `${apiEndpoint}/api/v1/chat/completions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        },
+      );
+      if (!res.ok) {
+        ui?.notifications?.error(`GigaChat API call failed: ${res.status} ${res.body}`);
+        return undefined;
+      }
+      const data = JSON.parse(res.body);
+      return data?.choices?.[0]?.message?.content ?? undefined;
+    } catch (err) {
+      ui?.notifications?.error(`GigaChat API call failed. ${err}`);
+      return undefined;
+    }
   }
 }

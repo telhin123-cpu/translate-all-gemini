@@ -26,6 +26,7 @@ export class TranslateAllSettingHandler {
       choices: {
         [SupportedAIProviders.GEMINI]: "Google Gemini",
         [SupportedAIProviders.DEEPSEEK]: "DeepSeek",
+        [SupportedAIProviders.GIGACHAT]: "GigaChat (Sber)",
       },
     },
     apiKey: {
@@ -47,6 +48,7 @@ export class TranslateAllSettingHandler {
       choices: {
         "https://generativelanguage.googleapis.com": "Google Gemini (generativelanguage.googleapis.com)",
         "https://api.deepseek.com": "DeepSeek (api.deepseek.com)",
+        "https://gigachat.devices.sberbank.ru": "GigaChat (gigachat.devices.sberbank.ru)",
       },
     },
     targetLanguage: {

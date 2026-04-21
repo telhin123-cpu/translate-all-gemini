@@ -24,6 +24,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Copy server script
+        run: cp src/server.mjs scripts/server.mjs
+
       - name: Package module
         run: |
           zip -r module.zip module.json lang/ scripts/ images/ README.md CHANGELOG.md LICENSE
