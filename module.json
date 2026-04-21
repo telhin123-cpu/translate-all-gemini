@@ -15,6 +15,11 @@
       "discord": "Elminster_CS"
     }
   ],
+  "url": "https://github.com/telhin123-cpu/translate-all-gemini",
+  "readme": "https://github.com/telhin123-cpu/translate-all-gemini/blob/master/README.md",
+  "manifest": "https://raw.githubusercontent.com/telhin123-cpu/translate-all-gemini/refs/heads/main/module.json",
+  "changelog": "https://github.com/telhin123-cpu/translate-all-gemini/blob/master/CHANGELOG.md",
+  "bugs": "https://github.com/telhin123-cpu/translate-all-gemini/issues",
   "esmodules": [
     "scripts/main.js"
   ],
