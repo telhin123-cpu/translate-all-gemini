@@ -1,11 +1,8 @@
 export const MODULE_NAME = 'translate-all-gemini';
 
 export interface TranslateConfigSettingConfig {
-  'translate-all-gemini.apiKey': string;
   'translate-all-gemini.apiKeyGemini': string;
   'translate-all-gemini.apiKeyDeepSeek': string;
-  'translate-all-gemini.apiKeyGigaChat': string;
-  'translate-all-gemini.apiKeyOpenRouter': string;
   'translate-all-gemini.targetSystem': string;
   'translate-all-gemini.targetLanguage': string;
   'translate-all-gemini.targetModel': string;
@@ -37,8 +34,6 @@ export interface TranslateFunction {
 export enum SupportedAIProviders {
   GEMINI = 'gemini',
   DEEPSEEK = 'deepseek',
-  GIGACHAT = 'gigachat',
-  OPENROUTER = 'openrouter',
 }
 
 export enum SupportedSystems {

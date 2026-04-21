@@ -26,8 +26,6 @@ export class TranslateAllSettingHandler {
       choices: {
         [SupportedAIProviders.GEMINI]: "Google Gemini",
         [SupportedAIProviders.DEEPSEEK]: "DeepSeek",
-        [SupportedAIProviders.GIGACHAT]: "GigaChat (Sber)",
-        [SupportedAIProviders.OPENROUTER]: "OpenRouter (Gemini via proxy)",
       },
     },
     apiKeyGemini: {
@@ -48,24 +46,6 @@ export class TranslateAllSettingHandler {
       default: "",
       masked: true,
     },
-    apiKeyGigaChat: {
-      name: "translate-all-gemini.settings.apiKeyGigaChat.name",
-      hint: "translate-all-gemini.settings.apiKeyGigaChat.hint",
-      scope: "world",
-      config: true,
-      type: String,
-      default: "",
-      masked: true,
-    },
-    apiKeyOpenRouter: {
-      name: "translate-all-gemini.settings.apiKeyOpenRouter.name",
-      hint: "translate-all-gemini.settings.apiKeyOpenRouter.hint",
-      scope: "world",
-      config: true,
-      type: String,
-      default: "",
-      masked: true,
-    },
     apiEndpoint: {
       name: "translate-all-gemini.settings.apiEndpoint.name",
       hint: "translate-all-gemini.settings.apiEndpoint.hint",
@@ -76,8 +56,6 @@ export class TranslateAllSettingHandler {
       choices: {
         "https://generativelanguage.googleapis.com": "Google Gemini (generativelanguage.googleapis.com)",
         "https://api.deepseek.com": "DeepSeek (api.deepseek.com)",
-        "https://gigachat.devices.sberbank.ru": "GigaChat (gigachat.devices.sberbank.ru)",
-        "https://openrouter.ai": "OpenRouter (openrouter.ai)",
       },
     },
     targetLanguage: {
@@ -153,8 +131,6 @@ export class TranslateAllSettingHandler {
     this._register("translate-all-gemini" as TranslateAllNamespace, "aiProvider" as KeyFor<TranslateAllNamespace>, this.settings.aiProvider);
     this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyGemini" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyGemini);
     this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyDeepSeek" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyDeepSeek);
-    this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyGigaChat" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyGigaChat);
-    this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyOpenRouter" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyOpenRouter);
     this._register("translate-all-gemini" as TranslateAllNamespace, "apiEndpoint" as KeyFor<TranslateAllNamespace>, this.settings.apiEndpoint);
     this._register("translate-all-gemini" as TranslateAllNamespace, "targetLanguage" as KeyFor<TranslateAllNamespace>, this.settings.targetLanguage);
 

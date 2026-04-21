@@ -24,9 +24,6 @@
   "esmodules": [
     "scripts/main.js"
   ],
-  "scripts": [
-    "scripts/server.mjs"
-  ],
   "languages": [
     {
       "lang": "en",
