@@ -116,11 +116,13 @@ export class TranslateAllSettingHandler {
   }
 
   private _registerRefreshButton(): void {
-    Hooks.on("renderSettingsConfig", (_app: SettingsConfig, html: JQuery<HTMLElement>) => {
+    // Foundry v13 uses "renderSettingsConfig", fallback also handles "renderApplication"
+    const addBtn = (_app: any, html: JQuery<HTMLElement>) => {
       const modelRow = html.find(`[name="translate-all-gemini.targetModel"]`).closest(".form-group");
       if (!modelRow.length) return;
+      if (modelRow.find(".translate-refresh-btn").length) return;
 
-      const btn = $(`<button type="button" style="margin-top:4px;width:100%;">
+      const btn = $(`<button type="button" class="translate-refresh-btn" style="margin-top:4px;width:100%;">
         <i class="fas fa-sync-alt"></i> Refresh Models
       </button>`);
 
@@ -140,7 +142,10 @@ export class TranslateAllSettingHandler {
       });
 
       modelRow.append(btn);
-    });
+    };
+
+    Hooks.on("renderSettingsConfig", addBtn);
+    Hooks.on("renderApplication", addBtn);
   }
 
   private async _registerSettings(): Promise<void> {
