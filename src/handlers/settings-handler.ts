@@ -60,6 +60,14 @@ export class TranslateAllSettingHandler {
       filePicker: true, // 👈 Enables the file picker
       default: "",
     },
+    showLargeButton: {
+      name: "translate-all-gemini.settings.showLargeButton.name",
+      hint: "translate-all-gemini.settings.showLargeButton.hint",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true,
+    },
   };
 
   constructor() {}
@@ -103,6 +111,11 @@ export class TranslateAllSettingHandler {
       "translate-all-gemini" as TranslateAllNamespace,
       "promptTemplatePath" as KeyFor<TranslateAllNamespace>,
       this.settings.promptModel,
+    );
+    this._register(
+      "translate-all-gemini" as TranslateAllNamespace,
+      "showLargeButton" as KeyFor<TranslateAllNamespace>,
+      this.settings.showLargeButton,
     );
   }
 

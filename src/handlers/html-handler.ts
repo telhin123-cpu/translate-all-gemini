@@ -12,7 +12,8 @@ export class HTMLHandler {
     const htmlQuery: JQuery<HTMLElement> = html instanceof jQuery ? html : $(html);
 
     const header = htmlQuery.find(".window-header");
-    if (header.find("a.translate-btn").length) return;
+    if (!header.length) return;
+    if (header.find(".translate-btn").length) return;
 
     const btn = $(
       `<a class="translate-btn header-button control" title="Translate Description" style="margin-right: 4px;">
@@ -43,7 +44,43 @@ export class HTMLHandler {
       }
     });
 
-    header.find(".close").before(btn);
+    // Try different close button selectors for different Foundry versions
+    const closeBtn = header.find(".close, [data-action='close'], button.close").first();
+    if (closeBtn.length) {
+      closeBtn.before(btn);
+    } else {
+      header.append(btn);
+    }
+
+    // Large button (can be disabled in settings)
+    const showLargeButton = TranslateAllSettingHandler.getSetting("translate-all-gemini", "showLargeButton") as boolean;
+    if (showLargeButton) {
+      const largeBtn = $(
+        `<button class="translate-btn-large" style="margin: 4px 8px;">
+            <i class="fas fa-language"></i> Translate Description
+          </button>`,
+      );
+      largeBtn.on("click", async () => {
+        const icon = largeBtn.find("i");
+        icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
+        largeBtn.prop("disabled", true);
+        const overlay = $(`<div class="translate-overlay" style="position:absolute;inset:0;z-index:9999;cursor:wait;"></div>`);
+        htmlQuery.css("position", "relative").append(overlay);
+        try {
+          const translated = await Translator.translate(description);
+          if (!translated) {
+            ui?.notifications?.error("Translation failed or returned empty.");
+            return;
+          }
+          await HTMLHandler.updateDescription(app, translated, path);
+        } finally {
+          overlay.remove();
+          icon.removeClass("fa-spinner fa-spin").addClass("fa-language");
+          largeBtn.prop("disabled", false);
+        }
+      });
+      header.after(largeBtn);
+    }
   }
 
   private static async updateDescription(
