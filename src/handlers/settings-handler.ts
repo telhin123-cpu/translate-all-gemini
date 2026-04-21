@@ -1,6 +1,5 @@
 import { Translator } from "../translator";
 import { KeyFor, SupportedAIProviders, SupportedSystems, TranslateAllNamespace } from "../types";
-import { TranslateAllSettingsApp } from "./settings-app";
 
 export class TranslateAllSettingHandler {
   gameSettings: Game["settings"] = game.settings!;
@@ -21,7 +20,7 @@ export class TranslateAllSettingHandler {
       name: "translate-all-gemini.settings.aiProvider.name",
       hint: "translate-all-gemini.settings.aiProvider.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: SupportedAIProviders.GEMINI,
       choices: {
@@ -35,47 +34,57 @@ export class TranslateAllSettingHandler {
       name: "translate-all-gemini.settings.apiKeyGemini.name",
       hint: "translate-all-gemini.settings.apiKeyGemini.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "",
+      masked: true,
     },
     apiKeyDeepSeek: {
       name: "translate-all-gemini.settings.apiKeyDeepSeek.name",
       hint: "translate-all-gemini.settings.apiKeyDeepSeek.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "",
+      masked: true,
     },
     apiKeyGigaChat: {
       name: "translate-all-gemini.settings.apiKeyGigaChat.name",
       hint: "translate-all-gemini.settings.apiKeyGigaChat.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "",
+      masked: true,
     },
     apiKeyOpenRouter: {
       name: "translate-all-gemini.settings.apiKeyOpenRouter.name",
       hint: "translate-all-gemini.settings.apiKeyOpenRouter.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "",
+      masked: true,
     },
     apiEndpoint: {
       name: "translate-all-gemini.settings.apiEndpoint.name",
       hint: "translate-all-gemini.settings.apiEndpoint.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "https://generativelanguage.googleapis.com",
+      choices: {
+        "https://generativelanguage.googleapis.com": "Google Gemini (generativelanguage.googleapis.com)",
+        "https://api.deepseek.com": "DeepSeek (api.deepseek.com)",
+        "https://gigachat.devices.sberbank.ru": "GigaChat (gigachat.devices.sberbank.ru)",
+        "https://openrouter.ai": "OpenRouter (openrouter.ai)",
+      },
     },
     targetLanguage: {
       name: "translate-all-gemini.settings.language.name",
       hint: "translate-all-gemini.settings.language.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "Russian",
     },
@@ -83,7 +92,7 @@ export class TranslateAllSettingHandler {
       name: "translate-all-gemini.settings.model.name",
       hint: "translate-all-gemini.settings.model.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
       default: "gemini-2.0-flash",
       choices: {},
@@ -92,8 +101,9 @@ export class TranslateAllSettingHandler {
       name: "translate-all-gemini.settings.promptTemplatePath.name",
       hint: "translate-all-gemini.settings.promptTemplatePath.hint",
       scope: "world",
-      config: false,
+      config: true,
       type: String,
+      filePicker: true,
       default: "",
     },
   };
@@ -102,85 +112,61 @@ export class TranslateAllSettingHandler {
 
   async init(): Promise<void> {
     await this._registerSettings();
-    this._registerMenuButton();
+    this._registerRefreshButton();
   }
 
-  private _registerMenuButton(): void {
-    game.settings!.registerMenu("translate-all-gemini" as "core", "settingsMenu" as any, {
-      name: "Translate All Settings",
-      label: "Configure",
-      hint: "Configure AI providers, API keys, models and translation settings.",
-      icon: "fas fa-language",
-      type: TranslateAllSettingsApp as any,
-      restricted: true,
+  private _registerRefreshButton(): void {
+    Hooks.on("renderSettingsConfig", (_app: SettingsConfig, html: JQuery<HTMLElement>) => {
+      const modelRow = html.find(`[name="translate-all-gemini.targetModel"]`).closest(".form-group");
+      if (!modelRow.length) return;
+
+      const btn = $(`<button type="button" style="margin-top:4px;width:100%;">
+        <i class="fas fa-sync-alt"></i> Refresh Models
+      </button>`);
+
+      btn.on("click", async () => {
+        btn.prop("disabled", true).find("i").addClass("fa-spin");
+        const provider = TranslateAllSettingHandler.getSetting("translate-all-gemini", "aiProvider") as SupportedAIProviders;
+        const models = await Translator.getModels(provider);
+        if (models) {
+          const select = html.find(`[name="translate-all-gemini.targetModel"]`);
+          const current = select.val();
+          select.empty();
+          for (const [id, label] of Object.entries(models)) {
+            select.append(`<option value="${id}" ${id === current ? "selected" : ""}>${label}</option>`);
+          }
+        }
+        btn.prop("disabled", false).find("i").removeClass("fa-spin");
+      });
+
+      modelRow.append(btn);
     });
   }
 
   private async _registerSettings(): Promise<void> {
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "targetSystem" as KeyFor<TranslateAllNamespace>,
-      this.settings.targetSystem,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "aiProvider" as KeyFor<TranslateAllNamespace>,
-      this.settings.aiProvider,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "apiKeyGemini" as KeyFor<TranslateAllNamespace>,
-      this.settings.apiKeyGemini,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "apiKeyDeepSeek" as KeyFor<TranslateAllNamespace>,
-      this.settings.apiKeyDeepSeek,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "apiKeyGigaChat" as KeyFor<TranslateAllNamespace>,
-      this.settings.apiKeyGigaChat,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "apiKeyOpenRouter" as KeyFor<TranslateAllNamespace>,
-      this.settings.apiKeyOpenRouter,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "apiEndpoint" as KeyFor<TranslateAllNamespace>,
-      this.settings.apiEndpoint,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "targetLanguage" as KeyFor<TranslateAllNamespace>,
-      this.settings.targetLanguage,
-    );
+    this._register("translate-all-gemini" as TranslateAllNamespace, "targetSystem" as KeyFor<TranslateAllNamespace>, this.settings.targetSystem);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "aiProvider" as KeyFor<TranslateAllNamespace>, this.settings.aiProvider);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyGemini" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyGemini);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyDeepSeek" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyDeepSeek);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyGigaChat" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyGigaChat);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "apiKeyOpenRouter" as KeyFor<TranslateAllNamespace>, this.settings.apiKeyOpenRouter);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "apiEndpoint" as KeyFor<TranslateAllNamespace>, this.settings.apiEndpoint);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "targetLanguage" as KeyFor<TranslateAllNamespace>, this.settings.targetLanguage);
+
     const provider = (this.gameSettings.get("translate-all-gemini" as "core", "aiProvider" as KeyFor<"core">) ?? SupportedAIProviders.GEMINI) as SupportedAIProviders;
     const models = await Translator.getModels(provider);
     if (models) {
       this.settings.targetModel.choices = models;
     }
 
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "targetModel" as KeyFor<TranslateAllNamespace>,
-      this.settings.targetModel,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "promptTemplatePath" as KeyFor<TranslateAllNamespace>,
-      this.settings.promptModel,
-    );
+    this._register("translate-all-gemini" as TranslateAllNamespace, "targetModel" as KeyFor<TranslateAllNamespace>, this.settings.targetModel);
+    this._register("translate-all-gemini" as TranslateAllNamespace, "promptTemplatePath" as KeyFor<TranslateAllNamespace>, this.settings.promptModel);
   }
 
-  // TODO: Fix this type casting
   _register(namespace: TranslateAllNamespace, key: KeyFor<TranslateAllNamespace>, config: any): void {
     this.gameSettings.register(namespace as "core", key as KeyFor<"core">, config);
   }
 
-  // TODO: Fix this type casting
   static getSetting(
     namespace: TranslateAllNamespace,
     key: KeyFor<TranslateAllNamespace>,

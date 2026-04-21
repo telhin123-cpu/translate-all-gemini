@@ -1,7 +1,6 @@
 import { DataHandler } from "handlers/data-handler";
 import { HTMLHandler } from "handlers/html-handler";
 import { TranslateAllSettingHandler } from "handlers/settings-handler";
-import { TranslateAllSettingsApp } from "handlers/settings-app";
 import { SupportedEntries, SupportedSystems } from "types";
 
 Hooks.once("init", async () => {
@@ -9,8 +8,6 @@ Hooks.once("init", async () => {
     ui?.notifications?.error(`Game settings are not available. This module requires Foundry VTT version 10 or later.`);
     return;
   }
-  // Register app globally so Foundry can instantiate it via registerMenu
-  (window as any).TranslateAllSettingsApp = TranslateAllSettingsApp;
   const settingHandler = new TranslateAllSettingHandler();
   await settingHandler.init();
 });
