@@ -206,15 +206,31 @@ export class Translator {
 
   /**
    * Proxy a fetch request through the Foundry server socket to bypass CORS.
+   * Uses request/response pattern with unique requestId since Foundry v13
+   * does not support socket.emit acknowledgement callbacks.
    */
   private static async serverFetch(url: string, options: { method: string; headers: Record<string, string>; body?: string }): Promise<{ ok: boolean; status: number; body: string }> {
+    const requestId = `${Date.now()}-${Math.random()}`;
+    const eventName = `module.translate-all-gemini`;
+
     return new Promise((resolve, reject) => {
-      (game as any).socket.emit(`module.translate-all-gemini`, {
+      const timeout = setTimeout(() => {
+        (game as any).socket.off(eventName, handler);
+        reject(new Error("Server proxy timeout — no response in 30s"));
+      }, 30000);
+
+      const handler = (data: any) => {
+        if (data?.action !== "proxyFetchResponse" || data?.requestId !== requestId) return;
+        clearTimeout(timeout);
+        (game as any).socket.off(eventName, handler);
+        resolve(data.result);
+      };
+
+      (game as any).socket.on(eventName, handler);
+      (game as any).socket.emit(eventName, {
         action: "proxyFetch",
+        requestId,
         payload: { url, ...options },
-      }, (res: any) => {
-        if (res) resolve(res);
-        else reject(new Error("No response from server socket"));
       });
     });
   }
