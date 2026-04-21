@@ -31,7 +31,7 @@ export class TranslateAllSettingHandler {
       scope: "world",
       config: true,
       type: String,
-      default: "https://googleapis.com",
+      default: "https://generativelanguage.googleapis.com",
     },
     targetLanguage: {
       name: "translate-all-gemini.settings.language.name",
