@@ -12,24 +12,38 @@ export class HTMLHandler {
     const htmlQuery: JQuery<HTMLElement> = html instanceof jQuery ? html : $(html);
 
     const header = htmlQuery.find(".window-header");
-    if (header.find("button.translate-btn").length) return;
+    if (header.find("a.translate-btn").length) return;
 
     const btn = $(
-      `<button class="translate-btn" style="margin-left: 8px; margin-top: 8px;">
-          Translate Description
-        </button>`,
+      `<a class="translate-btn header-button control" title="Translate Description" style="margin-right: 4px;">
+          <i class="fas fa-language"></i>
+        </a>`,
     );
 
     btn.on("click", async () => {
-      const translated = await Translator.translate(description);
-      if (!translated) {
-        ui?.notifications?.error("Translation failed or returned empty.");
-        return;
+      // Lock UI
+      const icon = btn.find("i");
+      icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
+      btn.css("pointer-events", "none");
+      const overlay = $(`<div class="translate-overlay" style="position:absolute;inset:0;z-index:9999;cursor:wait;"></div>`);
+      htmlQuery.css("position", "relative").append(overlay);
+
+      try {
+        const translated = await Translator.translate(description);
+        if (!translated) {
+          ui?.notifications?.error("Translation failed or returned empty.");
+          return;
+        }
+        await HTMLHandler.updateDescription(app, translated, path);
+      } finally {
+        // Restore UI
+        overlay.remove();
+        icon.removeClass("fa-spinner fa-spin").addClass("fa-language");
+        btn.css("pointer-events", "");
       }
-      await HTMLHandler.updateDescription(app, translated, path);
     });
 
-    header.append(btn);
+    header.find(".close").before(btn);
   }
 
   private static async updateDescription(

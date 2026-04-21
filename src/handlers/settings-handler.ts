@@ -48,7 +48,7 @@ export class TranslateAllSettingHandler {
       scope: "world",
       config: true,
       type: String,
-      default: "gemini-1.5-flash",
+      default: "gemini-2.0-flash",
       choices: {},
     },
     promptModel: {
