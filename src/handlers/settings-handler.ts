@@ -30,9 +30,36 @@ export class TranslateAllSettingHandler {
         [SupportedAIProviders.OPENROUTER]: "OpenRouter (Gemini via proxy)",
       },
     },
-    apiKey: {
-      name: "translate-all-gemini.settings.apiKey.name",
-      hint: "translate-all-gemini.settings.apiKey.hint",
+    apiKeyGemini: {
+      name: "translate-all-gemini.settings.apiKeyGemini.name",
+      hint: "translate-all-gemini.settings.apiKeyGemini.hint",
+      scope: "world",
+      config: true,
+      type: String,
+      default: "",
+      masked: true,
+    },
+    apiKeyDeepSeek: {
+      name: "translate-all-gemini.settings.apiKeyDeepSeek.name",
+      hint: "translate-all-gemini.settings.apiKeyDeepSeek.hint",
+      scope: "world",
+      config: true,
+      type: String,
+      default: "",
+      masked: true,
+    },
+    apiKeyGigaChat: {
+      name: "translate-all-gemini.settings.apiKeyGigaChat.name",
+      hint: "translate-all-gemini.settings.apiKeyGigaChat.hint",
+      scope: "world",
+      config: true,
+      type: String,
+      default: "",
+      masked: true,
+    },
+    apiKeyOpenRouter: {
+      name: "translate-all-gemini.settings.apiKeyOpenRouter.name",
+      hint: "translate-all-gemini.settings.apiKeyOpenRouter.hint",
       scope: "world",
       config: true,
       type: String,
@@ -130,8 +157,23 @@ export class TranslateAllSettingHandler {
     );
     this._register(
       "translate-all-gemini" as TranslateAllNamespace,
-      "apiKey" as KeyFor<TranslateAllNamespace>,
-      this.settings.apiKey,
+      "apiKeyGemini" as KeyFor<TranslateAllNamespace>,
+      this.settings.apiKeyGemini,
+    );
+    this._register(
+      "translate-all-gemini" as TranslateAllNamespace,
+      "apiKeyDeepSeek" as KeyFor<TranslateAllNamespace>,
+      this.settings.apiKeyDeepSeek,
+    );
+    this._register(
+      "translate-all-gemini" as TranslateAllNamespace,
+      "apiKeyGigaChat" as KeyFor<TranslateAllNamespace>,
+      this.settings.apiKeyGigaChat,
+    );
+    this._register(
+      "translate-all-gemini" as TranslateAllNamespace,
+      "apiKeyOpenRouter" as KeyFor<TranslateAllNamespace>,
+      this.settings.apiKeyOpenRouter,
     );
     this._register(
       "translate-all-gemini" as TranslateAllNamespace,

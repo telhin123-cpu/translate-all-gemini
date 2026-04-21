@@ -63,7 +63,7 @@ export class Translator {
   }
 
   static async getGeminiModels(): Promise<Record<string, string>> {
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyGemini") as string;
     const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
 
     // Pricing per 1M tokens (input / output), as of 2025
@@ -98,7 +98,7 @@ export class Translator {
   }
 
   static async getDeepSeekModels(): Promise<Record<string, string>> {
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyDeepSeek") as string;
     const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
 
     // Pricing per 1M tokens (input cache hit / input / output), as of 2025
@@ -129,7 +129,7 @@ export class Translator {
   }
 
   static async translateWithGemini(description: string): Promise<string | undefined> {
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyGemini") as string;
     const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
@@ -165,7 +165,7 @@ export class Translator {
   }
 
   static async translateWithDeepSeek(description: string): Promise<string | undefined> {
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyDeepSeek") as string;
     const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
@@ -220,7 +220,7 @@ export class Translator {
   }
 
   static async getOpenRouterModels(): Promise<Record<string, string>> {
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyOpenRouter") as string;
 
     // Static fallback — Gemini models available on OpenRouter
     const fallback: Record<string, string> = {
@@ -259,7 +259,7 @@ export class Translator {
   }
 
   static async translateWithOpenRouter(description: string): Promise<string | undefined> {
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyOpenRouter") as string;
     const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
@@ -304,7 +304,7 @@ export class Translator {
   }
 
   static async translateWithGigaChat(description: string): Promise<string | undefined> {
-    const credentials = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const credentials = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKeyGigaChat") as string;
     const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
