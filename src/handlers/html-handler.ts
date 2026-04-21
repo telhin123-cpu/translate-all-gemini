@@ -37,7 +37,7 @@ export class HTMLHandler {
     translation: string,
     path: string,
   ): Promise<void> {
-    const system = TranslateAllSettingHandler.getSetting("translate-all", "targetSystem") as SupportedSystems;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     if (system === SupportedSystems.DND5E) {
       await this.update5eDescription(app, translation, path);
     } else if (system === SupportedSystems.PATHFINDER2E) {

@@ -1,8 +1,8 @@
 {
-  "id": "translate-all",
-  "title": "Translate All",
-  "description": "Adds a button to translate item/spell and Journal descriptions using ChatGPT.",
-  "version": "1.2.1",
+  "id": "translate-all-gemini",
+  "title": "Translate All (Gemini)",
+  "description": "Adds a button to translate item/spell and Journal descriptions using Google Gemini.",
+  "version": "1.0.0",
   "type": "module",
   "compatibility": {
     "minimum": "13",
@@ -11,16 +11,10 @@
   },
   "authors": [
     {
-      "name": "https://github.com/AlessandroSantarini",
+      "name": "https://github.com/telhin123-cpu",
       "discord": "Elminster_CS"
     }
   ],
-  "url": "https://github.com/AlessandroSantarini/translate-all",
-  "readme": "https://github.com/AlessandroSantarini/translate-all/blob/master/README.md",
-  "manifest": "https://raw.githubusercontent.com/AlessandroSantarini/translate-all/refs/heads/main/module.json",
-  "download": "https://github.com/AlessandroSantarini/translate-all/releases/download/1.0.6/module.zip",
-  "changelog": "https://github.com/AlessandroSantarini/translate-all/blob/master/CHANGELOG.md",
-  "bugs": "https://github.com/AlessandroSantarini/translate-all/issues",
   "esmodules": [
     "scripts/main.js"
   ],

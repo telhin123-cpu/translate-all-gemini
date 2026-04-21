@@ -5,8 +5,8 @@ export class TranslateAllSettingHandler {
   gameSettings: Game["settings"] = game.settings!;
   readonly settings = {
     targetSystem: {
-      name: "translate-all.settings.game.system.name",
-      hint: "translate-all.settings.game.system.hint",
+      name: "translate-all-gemini.settings.game.system.name",
+      hint: "translate-all-gemini.settings.game.system.hint",
       scope: "world",
       config: true,
       type: String,
@@ -17,8 +17,8 @@ export class TranslateAllSettingHandler {
       },
     },
     apiKey: {
-      name: "translate-all.settings.apiKey.name",
-      hint: "translate-all.settings.apiKey.hint",
+      name: "translate-all-gemini.settings.apiKey.name",
+      hint: "translate-all-gemini.settings.apiKey.hint",
       scope: "world",
       config: true,
       type: String,
@@ -26,16 +26,16 @@ export class TranslateAllSettingHandler {
       masked: true,
     },
     apiEndpoint: {
-      name: "translate-all.settings.apiEndpoint.name",
-      hint: "translate-all.settings.apiEndpoint.hint",
+      name: "translate-all-gemini.settings.apiEndpoint.name",
+      hint: "translate-all-gemini.settings.apiEndpoint.hint",
       scope: "world",
       config: true,
       type: String,
-      default: "https://api.openai.com/v1",
+      default: "https://googleapis.com",
     },
     targetLanguage: {
-      name: "translate-all.settings.language.name",
-      hint: "translate-all.settings.language.hint",
+      name: "translate-all-gemini.settings.language.name",
+      hint: "translate-all-gemini.settings.language.hint",
       scope: "world",
       config: true,
       type: String,
@@ -43,17 +43,17 @@ export class TranslateAllSettingHandler {
       masked: true,
     },
     targetModel: {
-      name: "translate-all.settings.model.name",
-      hint: "translate-all.settings.model.hint",
+      name: "translate-all-gemini.settings.model.name",
+      hint: "translate-all-gemini.settings.model.hint",
       scope: "world",
       config: true,
       type: String,
-      default: "gpt-4o-mini",
+      default: "gemini-1.5-flash",
       choices: {},
     },
     promptModel: {
-      name: "translate-all.settings.promptTemplatePath.name",
-      hint: "translate-all.settings.promptTemplatePath.hint",
+      name: "translate-all-gemini.settings.promptTemplatePath.name",
+      hint: "translate-all-gemini.settings.promptTemplatePath.hint",
       scope: "world",
       config: true,
       type: String,
@@ -70,22 +70,22 @@ export class TranslateAllSettingHandler {
 
   private async _registerSettings(): Promise<void> {
     this._register(
-      "translate-all" as TranslateAllNamespace,
+      "translate-all-gemini" as TranslateAllNamespace,
       "targetSystem" as KeyFor<TranslateAllNamespace>,
       this.settings.targetSystem,
     );
     this._register(
-      "translate-all" as TranslateAllNamespace,
+      "translate-all-gemini" as TranslateAllNamespace,
       "apiKey" as KeyFor<TranslateAllNamespace>,
       this.settings.apiKey,
     );
     this._register(
-      "translate-all" as TranslateAllNamespace,
+      "translate-all-gemini" as TranslateAllNamespace,
       "apiEndpoint" as KeyFor<TranslateAllNamespace>,
       this.settings.apiEndpoint,
     );
     this._register(
-      "translate-all" as TranslateAllNamespace,
+      "translate-all-gemini" as TranslateAllNamespace,
       "targetLanguage" as KeyFor<TranslateAllNamespace>,
       this.settings.targetLanguage,
     );
@@ -95,12 +95,12 @@ export class TranslateAllSettingHandler {
     }
 
     this._register(
-      "translate-all" as TranslateAllNamespace,
+      "translate-all-gemini" as TranslateAllNamespace,
       "targetModel" as KeyFor<TranslateAllNamespace>,
       this.settings.targetModel,
     );
     this._register(
-      "translate-all" as TranslateAllNamespace,
+      "translate-all-gemini" as TranslateAllNamespace,
       "promptTemplatePath" as KeyFor<TranslateAllNamespace>,
       this.settings.promptModel,
     );

@@ -1,12 +1,12 @@
-export const MODULE_NAME = 'translate-all';
+export const MODULE_NAME = 'translate-all-gemini';
 
 export interface TranslateConfigSettingConfig {
-  'translate-all.apiKey': string;
-  'translate-all.targetSystem': string;
-  'translate-all.targetLanguage': string;
-  'translate-all.targetModel': string;
-  'translate-all.apiEndpoint': string;
-  'translate-all.promptTemplatePath': string;
+  'translate-all-gemini.apiKey': string;
+  'translate-all-gemini.targetSystem': string;
+  'translate-all-gemini.targetLanguage': string;
+  'translate-all-gemini.targetModel': string;
+  'translate-all-gemini.apiEndpoint': string;
+  'translate-all-gemini.promptTemplatePath': string;
 }
 
 export type TranslateAllNamespace = typeof MODULE_NAME | ClientSettings.Namespace;

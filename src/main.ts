@@ -25,7 +25,7 @@ Hooks.on("renderItemSheet5e", async (app: ItemSheet, html: JQuery<HTMLElement>) 
 });
 
 Hooks.on("renderJournalEntryPageSheet", async (app: JournalPageSheet, html: JQuery<HTMLElement>) => {
-  const system = TranslateAllSettingHandler.getSetting("translate-all", "targetSystem") as SupportedSystems;
+  const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
   if (system !== SupportedSystems.DND5E) {
     // eslint-disable-next-line no-console
     console.warn("This feature is only available for D&D 5E.");

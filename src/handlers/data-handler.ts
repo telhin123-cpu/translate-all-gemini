@@ -3,7 +3,7 @@ import { TranslateAllSettingHandler } from "./settings-handler";
 
 export class DataHandler {
   static getDescription(app: JournalPageSheet | ItemSheet, type: SupportedEntries) {
-    const system = TranslateAllSettingHandler.getSetting("translate-all", "targetSystem") as SupportedSystems;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
 
     if (type === SupportedEntries.JOURNAL) {
       return DataHandler.getDescriptionFromJournal(app as JournalPageSheet, system);
@@ -37,7 +37,7 @@ export class DataHandler {
   }
 
   static getPathToUpdate(item: SupportedEntries): string {
-    const system = TranslateAllSettingHandler.getSetting("translate-all", "targetSystem") as SupportedSystems;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     return Directories[system][item];
   }
 

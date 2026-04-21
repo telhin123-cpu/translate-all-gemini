@@ -3,24 +3,21 @@ import { SupportedLanguages, SupportedSystems } from "types";
 
 export class Translator {
   static async translate(description: string): Promise<string | undefined> {
-    return await Translator.translateWithChatGPT(description);
+    return await Translator.translateWithGemini(description);
   }
 
   static async getPromptTemplate(path: string, description: string): Promise<string> {
-    const promptTemplatePath = TranslateAllSettingHandler.getSetting("translate-all", "promptTemplatePath") as string;
+    const promptTemplatePath = TranslateAllSettingHandler.getSetting("translate-all-gemini", "promptTemplatePath") as string;
     if (!promptTemplatePath) {
       return "";
     }
     let promptTemplate = "";
-    if (promptTemplatePath) {
-      try {
-        const url = foundry.utils.getRoute(promptTemplatePath);
-        promptTemplate = await fetch(url).then((x) => x.text());
-      } catch (err) {
-        ui?.notifications?.warn(`Could not load prompt template. ${err}`);
-      }
+    try {
+      const url = foundry.utils.getRoute(promptTemplatePath);
+      promptTemplate = await fetch(url).then((x) => x.text());
+    } catch (err) {
+      ui?.notifications?.warn(`Could not load prompt template. ${err}`);
     }
-
     return promptTemplate + `: ${description}`;
   }
 
@@ -29,81 +26,61 @@ export class Translator {
     language: SupportedLanguages,
     description: string,
   ): Promise<string> {
-    const path = TranslateAllSettingHandler.getSetting("translate-all", "promptTemplatePath") as string;
-    let prompt = "";
+    const path = TranslateAllSettingHandler.getSetting("translate-all-gemini", "promptTemplatePath") as string;
     if (path) {
-      prompt = await Translator.getPromptTemplate(path, description);
-    } else {
-      prompt = `Translate the following ${system} item/spell description into ${language}:\n\n
+      return await Translator.getPromptTemplate(path, description);
+    }
+    return `Translate the following ${system} item/spell description into ${language}:\n\n
             Keep the same format and structure, like HTML tags, and do not translate the item name or any specific game terms. 
-            Don not add any additional code encapsulation or formatting. Just return the translated text.\n\n
+            Do not add any additional code encapsulation or formatting. Just return the translated text.\n\n
             ${description}.`;
-    }
-
-    return prompt;
   }
 
+  /**
+   * Gemini does not have a public REST endpoint to list models,
+   * so we return a static map with the available Gemini models.
+   */
   static async getModels(): Promise<Record<string, string> | undefined> {
-    let response;
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all", "apiKey");
-    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all", "apiEndpoint");
-
-    try {
-      response = await fetch(`${apiEndpoint}/models`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-      });
-    } catch (error) {
-      ui?.notifications?.error(`ChatGPT API call failed. ${error}`);
-    }
-
-    if (!response?.ok) {
-      ui?.notifications?.error("ChatGPT API call failed.");
-      return undefined;
-    }
-
-    const data = await response.json();
-    const models = data.data.reduce((acc: Record<string, string>, model: { id: string }) => {
-      acc[model.id] = model.id;
-      return acc;
-    }, {});
-    return models;
+    return {
+      "gemini-1.5-flash": "Gemini 1.5 Flash",
+      "gemini-1.5-pro": "Gemini 1.5 Pro",
+      "gemini-2.0-flash": "Gemini 2.0 Flash",
+    };
   }
 
-  static async translateWithChatGPT(description: string): Promise<string | undefined> {
-    let response;
-    const apiKey = TranslateAllSettingHandler.getSetting("translate-all", "apiKey");
-    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all", "apiEndpoint");
-    const system = TranslateAllSettingHandler.getSetting("translate-all", "targetSystem") as SupportedSystems;
-    const language = TranslateAllSettingHandler.getSetting("translate-all", "targetLanguage") as SupportedLanguages;
-    const model = TranslateAllSettingHandler.getSetting("translate-all", "targetModel");
+  static async translateWithGemini(description: string): Promise<string | undefined> {
+    const apiKey = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiKey") as string;
+    const apiEndpoint = TranslateAllSettingHandler.getSetting("translate-all-gemini", "apiEndpoint") as string;
+    const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
+    const language = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetLanguage") as SupportedLanguages;
+    const model = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetModel") as string;
     const prompt = await Translator.generatePrompt(system, language, description);
 
+    // Gemini REST endpoint: POST /v1beta/models/{model}:generateContent?key={apiKey}
+    const url = `${apiEndpoint}/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+    let response: Response | undefined;
     try {
-      response = await fetch(`${apiEndpoint}/chat/completions`, {
+      response = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model,
-          messages: [{ role: "user", content: prompt }],
+          contents: [{ parts: [{ text: prompt }] }],
         }),
       });
     } catch (error) {
-      ui?.notifications?.error(`ChatGPT API call failed. ${error}`);
+      ui?.notifications?.error(`Gemini API call failed. ${error}`);
+      return undefined;
     }
 
     if (!response?.ok) {
-      ui?.notifications?.error("ChatGPT API call failed.");
+      const errText = await response?.text().catch(() => "");
+      ui?.notifications?.error(`Gemini API call failed: ${response?.status} ${errText}`);
       return undefined;
     }
 
     const data = await response.json();
-    return data.choices?.[0]?.message?.content ?? undefined;
+    // Response shape: { candidates: [{ content: { parts: [{ text: "..." }] } }] }
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? undefined;
   }
 }
