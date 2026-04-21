@@ -18,7 +18,7 @@ export class TranslateAllSettingsApp extends FormApplication {
       template: false,
       width: 560,
       height: "auto",
-      closeOnSubmit: true,
+      closeOnSubmit: false,
     } as Partial<FormApplicationOptions>);
   }
 
@@ -150,13 +150,21 @@ export class TranslateAllSettingsApp extends FormApplication {
   }
 
   async _updateObject(_event: Event, formData: Record<string, unknown>): Promise<void> {
-    const set = (key: string, val: unknown) =>
-      game.settings!.set("translate-all-gemini" as "core", key as any, val);
+    // Use ClientSettings directly to avoid triggering world reload
+    const settings = game.settings! as any;
+    const set = async (key: string, val: unknown) => {
+      // Bypass the reload prompt by calling the underlying storage directly
+      const setting = settings.settings.get(`translate-all-gemini.${key}`);
+      if (!setting) return;
+      const current = settings.storage.get("world").getItem(`translate-all-gemini.${key}`);
+      const newVal = JSON.stringify(val);
+      if (current === newVal) return;
+      settings.storage.get("world").setItem(`translate-all-gemini.${key}`, newVal);
+      Hooks.callAll(`updateSetting`, `translate-all-gemini.${key}`, val);
+    };
 
-    // Save active provider
     await set("aiProvider", this.activeTab);
 
-    // Save provider-specific API key
     const keyMap: Record<SupportedAIProviders, string> = {
       [SupportedAIProviders.GEMINI]:     "apiKeyGemini",
       [SupportedAIProviders.DEEPSEEK]:   "apiKeyDeepSeek",
@@ -167,9 +175,12 @@ export class TranslateAllSettingsApp extends FormApplication {
       await set(keyMap[this.activeTab], formData.apiKey);
     }
 
-    await set("targetModel",          formData.targetModel);
-    await set("targetSystem",         formData.targetSystem);
-    await set("targetLanguage",       formData.targetLanguage);
-    await set("promptTemplatePath",   formData.promptTemplatePath ?? "");
+    await set("targetModel",        formData.targetModel);
+    await set("targetSystem",       formData.targetSystem);
+    await set("targetLanguage",     formData.targetLanguage);
+    await set("promptTemplatePath", formData.promptTemplatePath ?? "");
+
+    ui?.notifications?.info("Settings saved.");
+    await this.close();
   }
 }
