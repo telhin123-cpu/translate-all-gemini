@@ -8,6 +8,7 @@ export class HTMLHandler {
     html: JQuery<HTMLElement>,
     description: string,
     path: string,
+    name?: string,
   ): Promise<void> {
     const htmlQuery: JQuery<HTMLElement> = html instanceof jQuery ? html : $(html);
 
@@ -35,7 +36,12 @@ export class HTMLHandler {
           ui?.notifications?.error("Translation failed or returned empty.");
           return;
         }
-        await HTMLHandler.updateDescription(app, translated, path);
+        // Translate name if present
+        let translatedName: string | undefined;
+        if (name) {
+          translatedName = await Translator.translate(name);
+        }
+        await HTMLHandler.updateDescription(app, translated, path, translatedName);
       } finally {
         overlay.remove();
         htmlQuery.css("position", prevPosition || "");
@@ -57,12 +63,13 @@ export class HTMLHandler {
     app: JournalPageSheet | ItemSheet,
     translation: string,
     path: string,
+    translatedName?: string,
   ): Promise<void> {
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     if (system === SupportedSystems.DND5E) {
-      await this.update5eDescription(app, translation, path);
+      await this.update5eDescription(app, translation, path, translatedName);
     } else if (system === SupportedSystems.PATHFINDER2E) {
-      await this.updatePF2EDescription(app, translation, path);
+      await this.updatePF2EDescription(app, translation, path, translatedName);
     }
   }
 
@@ -70,10 +77,13 @@ export class HTMLHandler {
     app: JournalPageSheet | ItemSheet,
     translation: string,
     path: string,
+    translatedName?: string,
   ): Promise<void> {
     try {
       const item = app.document;
-      await item.update({ [path]: translation });
+      const updates: Record<string, string> = { [path]: translation };
+      if (translatedName) updates["name"] = translatedName;
+      await item.update(updates);
       app.render(true);
       app.close();
     } catch (error) {
@@ -85,14 +95,17 @@ export class HTMLHandler {
     app: JournalPageSheet | ItemSheet,
     translation: string,
     path: string,
+    translatedName?: string,
   ): Promise<void> {
     const item = app.object;
 
     try {
+      const updates: Record<string, string> = { [path]: translation };
+      if (translatedName) updates["name"] = translatedName;
       if (path.includes("system")) {
-        await item.update({ [path]: translation });
+        await item.update(updates);
       } else {
-        await item.updateSource({ [path]: translation });
+        await item.updateSource(updates);
       }
     } catch (error) {
       ui?.notifications?.error(`Error updating item description: ${error}`);

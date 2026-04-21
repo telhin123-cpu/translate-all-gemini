@@ -28,6 +28,7 @@ export interface TranslateFunction {
     html: JQuery<HTMLElement>,
     description: string,
     path: string,
+    name?: string,
   ): Promise<void>;
 }
 

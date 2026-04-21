@@ -41,6 +41,11 @@ export class DataHandler {
     return Directories[system][item];
   }
 
+  static getName(app: JournalPageSheet | ItemSheet, type: SupportedEntries): string | undefined {
+    if (type === SupportedEntries.JOURNAL) return undefined; // journals don't have a translatable name field here
+    return (app as ItemSheet)?.object?.name || (app as any)?.options?.document?.name || undefined;
+  }
+
   static async getTranslatedDescription(
     app: JournalPageSheet | ItemSheet,
     html: JQuery<HTMLElement>,
@@ -48,11 +53,9 @@ export class DataHandler {
     translateFN: TranslateFunction,
   ) {
     const description = DataHandler.getDescription(app, item);
-    if (!description) {
-      // Do not enable button to translate if there is no description
-      return;
-    }
+    if (!description) return;
     const path = DataHandler.getPathToUpdate(item);
-    translateFN(app, html, description, path);
+    const name = DataHandler.getName(app, item);
+    translateFN(app, html, description, path, name);
   }
 }
