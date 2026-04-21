@@ -57,16 +57,8 @@ export class TranslateAllSettingHandler {
       scope: "world",
       config: true,
       type: String,
-      filePicker: true, // 👈 Enables the file picker
+      filePicker: true,
       default: "",
-    },
-    showLargeButton: {
-      name: "translate-all-gemini.settings.showLargeButton.name",
-      hint: "translate-all-gemini.settings.showLargeButton.hint",
-      scope: "world",
-      config: true,
-      type: Boolean,
-      default: true,
     },
   };
 
@@ -111,11 +103,6 @@ export class TranslateAllSettingHandler {
       "translate-all-gemini" as TranslateAllNamespace,
       "promptTemplatePath" as KeyFor<TranslateAllNamespace>,
       this.settings.promptModel,
-    );
-    this._register(
-      "translate-all-gemini" as TranslateAllNamespace,
-      "showLargeButton" as KeyFor<TranslateAllNamespace>,
-      this.settings.showLargeButton,
     );
   }
 

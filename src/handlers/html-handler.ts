@@ -22,11 +22,11 @@ export class HTMLHandler {
     );
 
     btn.on("click", async () => {
-      // Lock UI
       const icon = btn.find("i");
       icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
       btn.css("pointer-events", "none");
       const overlay = $(`<div class="translate-overlay" style="position:absolute;inset:0;z-index:9999;cursor:wait;"></div>`);
+      const prevPosition = htmlQuery.css("position");
       htmlQuery.css("position", "relative").append(overlay);
 
       try {
@@ -37,8 +37,8 @@ export class HTMLHandler {
         }
         await HTMLHandler.updateDescription(app, translated, path);
       } finally {
-        // Restore UI
         overlay.remove();
+        htmlQuery.css("position", prevPosition || "");
         icon.removeClass("fa-spinner fa-spin").addClass("fa-language");
         btn.css("pointer-events", "");
       }
@@ -50,36 +50,6 @@ export class HTMLHandler {
       closeBtn.before(btn);
     } else {
       header.append(btn);
-    }
-
-    // Large button (can be disabled in settings)
-    const showLargeButton = TranslateAllSettingHandler.getSetting("translate-all-gemini", "showLargeButton") as boolean;
-    if (showLargeButton) {
-      const largeBtn = $(
-        `<button class="translate-btn-large" style="margin: 4px 8px;">
-            <i class="fas fa-language"></i> Translate Description
-          </button>`,
-      );
-      largeBtn.on("click", async () => {
-        const icon = largeBtn.find("i");
-        icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
-        largeBtn.prop("disabled", true);
-        const overlay = $(`<div class="translate-overlay" style="position:absolute;inset:0;z-index:9999;cursor:wait;"></div>`);
-        htmlQuery.css("position", "relative").append(overlay);
-        try {
-          const translated = await Translator.translate(description);
-          if (!translated) {
-            ui?.notifications?.error("Translation failed or returned empty.");
-            return;
-          }
-          await HTMLHandler.updateDescription(app, translated, path);
-        } finally {
-          overlay.remove();
-          icon.removeClass("fa-spinner fa-spin").addClass("fa-language");
-          largeBtn.prop("disabled", false);
-        }
-      });
-      header.after(largeBtn);
     }
   }
 

@@ -10,7 +10,5 @@
   "translate-all-gemini.settings.model.name": "Target Model",
   "translate-all-gemini.settings.model.hint": "The Gemini model to use for translation. Default is 'gemini-1.5-flash'.",
   "translate-all-gemini.settings.promptTemplatePath.name": "Prompt Template File",
-  "translate-all-gemini.settings.promptTemplatePath.hint": "Path to a text file containing a custom prompt (e.g., /modules/translate-all-gemini/prompts/dnd5e.txt)",
-  "translate-all-gemini.settings.showLargeButton.name": "Show Large Translate Button",
-  "translate-all-gemini.settings.showLargeButton.hint": "Show a large 'Translate Description' button below the sheet header in addition to the icon button."
+  "translate-all-gemini.settings.promptTemplatePath.hint": "Path to a text file containing a custom prompt (e.g., /modules/translate-all-gemini/prompts/dnd5e.txt)"
 }
