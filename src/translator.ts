@@ -26,10 +26,18 @@ export class Translator {
   static async generatePrompt(system: SupportedSystems, language: SupportedLanguages, description: string): Promise<string> {
     const path = TranslateAllSettingHandler.getSetting("translate-all-gemini", "promptTemplatePath") as string;
     if (path) return await Translator.getPromptTemplate(path, description);
-    return `Translate the following ${system} item/spell description into ${language}:\n\n
-            Keep the same format and structure, like HTML tags, and do not translate the item name or any specific game terms. 
-            Do not add any additional code encapsulation or formatting. Just return the translated text.\n\n
-            ${description}.`;
+    return `You are a professional tabletop RPG translator specializing in ${system}. 
+            Translate the following description into ${language}.
+
+            Strict rules:
+            1. Preserve all HTML tags and technical formatting exactly as they are.
+            2. DO NOT translate core mechanics notation (e.g., "1d20", "2d6 + 4", "DC 15").
+            3. Use standard ${system} terminology for the ${language} locale (e.g., for Russian: "Saving Throw" -> "Спасбросок", "Armor Class" -> "Класс Доспеха").
+            4. Maintain a formal yet atmospheric fantasy tone.
+            5. Return ONLY the translated text without any explanations or markdown blocks.
+
+            Text to translate:
+            ${description}`;
   }
 
   static async getModels(provider?: SupportedAIProviders): Promise<Record<string, string> | undefined> {

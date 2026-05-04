@@ -33,3 +33,7 @@ Hooks.on("renderJournalEntryPageSheet", async (app: JournalPageSheet, html: JQue
   }
   DataHandler.getTranslatedDescription(app, html, SupportedEntries.JOURNAL, HTMLHandler.translateApp);
 });
+
+Hooks.on("renderRollTableConfig", async (app: RollTableConfig, html: JQuery<HTMLElement>) => {
+  DataHandler.getTranslatedDescription(app, html, SupportedEntries.ROLLABLE_TABLE, HTMLHandler.translateApp);
+});

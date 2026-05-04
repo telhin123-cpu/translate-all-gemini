@@ -24,11 +24,12 @@ export type KeyFor<N extends TranslateAllNamespace> = GetKeys<
 
 export interface TranslateFunction {
   (
-    app: JournalPageSheet | ItemSheet,
+    app: JournalPageSheet | ItemSheet | RollTableConfig,
     html: JQuery<HTMLElement>,
     description: string,
     path: string,
     name?: string,
+    docType?: string,
   ): Promise<void>;
 }
 
@@ -50,15 +51,18 @@ export enum SupportedLanguages {
 export enum SupportedEntries {
   JOURNAL = 'journal',
   ITEM = 'item',
+  ROLLABLE_TABLE = 'rollable_table',
 }
 
 export const Directories = {
   [SupportedSystems.DND5E]: {
     [SupportedEntries.JOURNAL]: 'text.content',
     [SupportedEntries.ITEM]: 'system.description.value',
+    [SupportedEntries.ROLLABLE_TABLE]: 'description',
   },
   [SupportedSystems.PATHFINDER2E]: {
     [SupportedEntries.JOURNAL]: 'text.content',
     [SupportedEntries.ITEM]: 'system.description.value',
+    [SupportedEntries.ROLLABLE_TABLE]: 'description',
   },
 };

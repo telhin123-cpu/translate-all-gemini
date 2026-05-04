@@ -4,11 +4,12 @@ import { TranslateAllSettingHandler } from "./settings-handler";
 
 export class HTMLHandler {
   static async translateApp(
-    app: JournalPageSheet | ItemSheet,
+    app: JournalPageSheet | ItemSheet | RollTableConfig,
     html: JQuery<HTMLElement>,
     description: string,
     path: string,
     name?: string,
+    docType?: string,
   ): Promise<void> {
     const htmlQuery: JQuery<HTMLElement> = html instanceof jQuery ? html : $(html);
 
@@ -23,28 +24,75 @@ export class HTMLHandler {
     );
 
     btn.on("click", async () => {
-      const icon = btn.find("i");
-      icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
-      btn.css("pointer-events", "none");
-      const overlay = $(`<div class="translate-overlay" style="position:absolute;inset:0;z-index:9999;cursor:wait;"></div>`);
-      const prevPosition = htmlQuery.css("position");
-      htmlQuery.css("position", "relative").append(overlay);
+      // const icon = btn.find("i");
+      // icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
+      // btn.css("pointer-events", "none");
+      // const overlay = $(`<div class="translate-overlay" style="position:absolute;inset:0;z-index:9999;cursor:wait;"></div>`);
+      // const prevPosition = htmlQuery.css("position");
+      // htmlQuery.css("position", "relative").append(overlay);
 
+      // Находим основной контейнер с контентом, чтобы не ломать хедер окна
+      const contentContainer = htmlQuery.find('.sheet-body, .window-content').first();
+      const target = contentContainer.length ? contentContainer : htmlQuery;
+
+      // Сохраняем оригинальное позиционирование только если оно не задано
+      const prevPosition = target.css("position");
+      if (prevPosition === 'static') {
+          target.css("position", "relative");
+      }
+
+      const overlay = $(`
+        <div class="translate-overlay" style="
+          position: absolute;
+          inset: 0;
+          z-index: 9999;
+          cursor: wait;
+          background: rgba(0,0,0,0.05); /* Немного затемним, чтобы было видно работу */
+          border-radius: 5px;
+        "></div>
+      `);
+
+      target.append(overlay);
+      
       try {
+        const icon = btn.find("i");
+        icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
+        btn.css("pointer-events", "none");
+
+        
         const translated = await Translator.translate(description);
         if (!translated) {
           ui?.notifications?.error("Translation failed or returned empty.");
           return;
         }
-        // Translate name if present
+
+        // Translate name: extract origin to avoid double-wrapping, format as "${translated} [${origin}]"
         let translatedName: string | undefined;
         if (name) {
-          translatedName = await Translator.translate(name);
+          const originMatch = name.match(/^.+\[(.+)\]$/);
+          const origin = originMatch ? originMatch[1] : name;
+          const translatedRaw = await Translator.translate(origin);
+          if (translatedRaw) translatedName = `${translatedRaw} [${origin}]`;
         }
-        await HTMLHandler.updateDescription(app, translated, path, translatedName);
+
+        // Translate docType if present
+        let translatedDocType: string | undefined;
+        if (docType) {
+          translatedDocType = await Translator.translate(docType);
+        }
+        await HTMLHandler.updateDescription(app, translated, path, translatedName, translatedDocType);
       } finally {
+        // overlay.remove();
+        // htmlQuery.css("position", prevPosition || "");
+        // icon.removeClass("fa-spinner fa-spin").addClass("fa-language");
+        // btn.css("pointer-events", "");
         overlay.remove();
-        htmlQuery.css("position", prevPosition || "");
+        if (prevPosition === 'static') {
+            target.css("position", prevPosition);
+        }
+        
+        // ОБЯЗАТЕЛЬНО возвращаем кнопку в рабочее состояние:
+        const icon = btn.find("i");
         icon.removeClass("fa-spinner fa-spin").addClass("fa-language");
         btn.css("pointer-events", "");
       }
@@ -60,39 +108,41 @@ export class HTMLHandler {
   }
 
   private static async updateDescription(
-    app: JournalPageSheet | ItemSheet,
+    app: JournalPageSheet | ItemSheet | RollTableConfig,
     translation: string,
     path: string,
     translatedName?: string,
+    translatedDocType?: string,
   ): Promise<void> {
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     if (system === SupportedSystems.DND5E) {
-      await this.update5eDescription(app, translation, path, translatedName);
+      await this.update5eDescription(app, translation, path, translatedName, translatedDocType);
     } else if (system === SupportedSystems.PATHFINDER2E) {
       await this.updatePF2EDescription(app, translation, path, translatedName);
     }
   }
 
   private static async update5eDescription(
-    app: JournalPageSheet | ItemSheet,
+    app: JournalPageSheet | ItemSheet | RollTableConfig,
     translation: string,
     path: string,
     translatedName?: string,
+    translatedDocType?: string,
   ): Promise<void> {
     try {
       const item = app.document;
       const updates: Record<string, string> = { [path]: translation };
       if (translatedName) updates["name"] = translatedName;
+      if (translatedDocType) updates["system.type"] = translatedDocType;
       await item.update(updates);
       app.render(true);
-      app.close();
     } catch (error) {
       ui?.notifications?.error(`Error updating item description: ${error}`);
     }
   }
 
   private static async updatePF2EDescription(
-    app: JournalPageSheet | ItemSheet,
+    app: JournalPageSheet | ItemSheet | RollTableConfig,
     translation: string,
     path: string,
     translatedName?: string,
