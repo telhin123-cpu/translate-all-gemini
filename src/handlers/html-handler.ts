@@ -59,9 +59,14 @@ export class HTMLHandler {
         icon.removeClass("fa-language").addClass("fa-spinner fa-spin");
         btn.css("pointer-events", "none");
 
-        
-        const translated = await Translator.translate(description);
-        if (!translated) {
+        const totalLabel = `[translate-all] total`;
+        console.time(totalLabel);
+
+        console.time(`[translate-all] description`);
+        const translated = description ? await Translator.translate(description) : undefined;
+        console.timeEnd(`[translate-all] description`);
+
+        if (!translated && description) {
           ui?.notifications?.error("Translation failed or returned empty.");
           return;
         }
@@ -71,16 +76,25 @@ export class HTMLHandler {
         if (name) {
           const originMatch = name.match(/^.+\[(.+)\]$/);
           const origin = originMatch ? originMatch[1] : name;
+          console.time(`[translate-all] name`);
           const translatedRaw = await Translator.translate(origin);
+          console.timeEnd(`[translate-all] name`);
           if (translatedRaw) translatedName = `${translatedRaw} [${origin}]`;
         }
 
         // Translate docType if present
         let translatedDocType: string | undefined;
         if (docType) {
+          console.time(`[translate-all] docType`);
           translatedDocType = await Translator.translate(docType);
+          console.timeEnd(`[translate-all] docType`);
         }
+
+        console.time(`[translate-all] save`);
         await HTMLHandler.updateDescription(app, translated, path, translatedName, translatedDocType);
+        console.timeEnd(`[translate-all] save`);
+
+        console.timeEnd(totalLabel);
       } finally {
         // overlay.remove();
         // htmlQuery.css("position", prevPosition || "");

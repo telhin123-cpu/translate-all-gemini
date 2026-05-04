@@ -67,10 +67,11 @@ export class DataHandler {
     translateFN: TranslateFunction,
   ) {
     const description = DataHandler.getDescription(app, item);
-    if (!description) return;
+    // For rollable tables description may be empty — still show the button
+    if (!description && item !== SupportedEntries.ROLLABLE_TABLE) return;
     const path = DataHandler.getPathToUpdate(item);
     const name = DataHandler.getName(app, item);
     const docType = DataHandler.getDocType(app, item);
-    translateFN(app, html, description, path, name, docType);
+    translateFN(app, html, description ?? "", path, name, docType);
   }
 }

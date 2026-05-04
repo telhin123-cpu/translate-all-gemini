@@ -37,3 +37,8 @@ Hooks.on("renderJournalEntryPageSheet", async (app: JournalPageSheet, html: JQue
 Hooks.on("renderRollTableConfig", async (app: RollTableConfig, html: JQuery<HTMLElement>) => {
   DataHandler.getTranslatedDescription(app, html, SupportedEntries.ROLLABLE_TABLE, HTMLHandler.translateApp);
 });
+
+// Foundry VTT v13 renamed the hook
+Hooks.on("renderRollTable", async (app: RollTableConfig, html: JQuery<HTMLElement>) => {
+  DataHandler.getTranslatedDescription(app, html, SupportedEntries.ROLLABLE_TABLE, HTMLHandler.translateApp);
+});
