@@ -13,7 +13,7 @@ export class HTMLHandler {
   ): Promise<void> {
     const htmlQuery: JQuery<HTMLElement> = html instanceof jQuery ? html : $(html);
 
-    const header = htmlQuery.find(".window-header");
+    let header = htmlQuery.find(".window-header");
 
     // СПЕЦИФИКА ДЛЯ ТАБЛИЦ (v13): 
     // Если это RollTable и в htmlQuery ничего не нашли, ищем в родителе .app
