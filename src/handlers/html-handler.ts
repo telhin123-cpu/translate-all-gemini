@@ -15,7 +15,6 @@ export class HTMLHandler {
 
     let header = htmlQuery.find(".window-header");
 
-    // СПЕЦИФИКА ДЛЯ ТАБЛИЦ (v13): 
     // Если это RollTable и в htmlQuery ничего не нашли, ищем в родителе .app
     if (!header.length && app.document?.documentName === "RollTable") {
       header = htmlQuery.closest('.app').find(".window-header");
