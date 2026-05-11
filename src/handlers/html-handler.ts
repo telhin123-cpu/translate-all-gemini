@@ -14,6 +14,17 @@ export class HTMLHandler {
     const htmlQuery: JQuery<HTMLElement> = html instanceof jQuery ? html : $(html);
 
     const header = htmlQuery.find(".window-header");
+
+    // СПЕЦИФИКА ДЛЯ ТАБЛИЦ (v13): 
+    // Если это RollTable и в htmlQuery ничего не нашли, ищем в родителе .app
+    if (!header.length && app.document?.documentName === "RollTable") {
+      header = htmlQuery.closest('.app').find(".window-header");
+    }
+
+    // Если хедер так и не найден (например, в JournalPage v13), пробуем еще раз глобально
+    if (!header.length) {
+      header = htmlQuery.closest('.window-app').find(".window-header");
+    }
     if (!header.length) return;
     if (header.find(".translate-btn").length) return;
 
@@ -147,7 +158,9 @@ export class HTMLHandler {
       const item = app.document;
       const updates: Record<string, string> = { [path]: translation };
       if (translatedName) updates["name"] = translatedName;
-      if (translatedDocType) updates["system.type"] = translatedDocType;
+      if (translatedDocType && "system" in item) {
+        updates["system.type"] = translatedDocType; 
+      }
       await item.update(updates);
       app.render(true);
     } catch (error) {
