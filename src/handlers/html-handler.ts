@@ -93,15 +93,15 @@ export class HTMLHandler {
         }
 
         // Translate docType if present
-        let translatedDocType: string | undefined;
-        if (docType) {
-          console.time(`[translate-all] docType`);
-          translatedDocType = await Translator.translate(docType);
-          console.timeEnd(`[translate-all] docType`);
-        }
+        // let translatedDocType: string | undefined;
+        // if (docType) {
+        //   console.time(`[translate-all] docType`);
+        //   translatedDocType = await Translator.translate(docType);
+        //   console.timeEnd(`[translate-all] docType`);
+        // }
 
         console.time(`[translate-all] save`);
-        await HTMLHandler.updateDescription(app, translated, path, translatedName, translatedDocType);
+        await HTMLHandler.updateDescription(app, translated, path, translatedName);
         console.timeEnd(`[translate-all] save`);
 
         console.timeEnd(totalLabel);
@@ -136,11 +136,10 @@ export class HTMLHandler {
     translation: string,
     path: string,
     translatedName?: string,
-    translatedDocType?: string,
   ): Promise<void> {
     const system = TranslateAllSettingHandler.getSetting("translate-all-gemini", "targetSystem") as SupportedSystems;
     if (system === SupportedSystems.DND5E) {
-      await this.update5eDescription(app, translation, path, translatedName, translatedDocType);
+      await this.update5eDescription(app, translation, path, translatedName);
     } else if (system === SupportedSystems.PATHFINDER2E) {
       await this.updatePF2EDescription(app, translation, path, translatedName);
     }
@@ -151,15 +150,14 @@ export class HTMLHandler {
     translation: string,
     path: string,
     translatedName?: string,
-    translatedDocType?: string,
   ): Promise<void> {
     try {
       const item = app.document;
       const updates: Record<string, string> = { [path]: translation };
       if (translatedName) updates["name"] = translatedName;
-      if (translatedDocType && "system" in item) {
-        updates["system.type"] = translatedDocType; 
-      }
+      // if (translatedDocType && "system" in item) {
+      //   updates["system.type"] = translatedDocType; 
+      // }
       await item.update(updates);
       app.render(true);
     } catch (error) {
